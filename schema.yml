@@ -1,0 +1,2069 @@
+openapi: 3.0.3
+info:
+  title: UCHQUN API - Yosh bilimdonlar uyi
+  version: 1.0.0
+  description: |-
+    UCHQUN platformasi uchun REST API.
+    O'quvchilar, ota-onalar nazorati, kurslar, mavzular, taqdimotlar (PDF), mini-testlar, amaliy topshiriqlar va guruh reyting tizimini to'liq qamrab oladi.
+paths:
+  /api/v1/analytics/leaderboard/:
+    get:
+      operationId: v1_analytics_leaderboard_retrieve
+      description: |-
+        Guruh bo'yicha umumiy reyting (Figma Reyting bo'limi).
+        O'quvchilar va ota-onalar guruhdagi barcha o'quvchilarning to'plagan ballari va o'rnini ko'ra oladi.
+      parameters:
+      - in: query
+        name: group_id
+        schema:
+          type: integer
+        description: Guruh ID (agar berilmasa joriy guruh olinadi)
+      tags:
+      - Leaderboard & Analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Guruh reyting jadvali
+  /api/v1/analytics/my-attendance/:
+    get:
+      operationId: v1_analytics_my_attendance_list
+      description: O'quvchining o'z davomati tarixi va ko'rsatkichlari.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAttendanceList'
+          description: ''
+  /api/v1/assignments/{id}/:
+    get:
+      operationId: v1_assignments_retrieve
+      description: Amaliy topshiriqning to'liq tafsilotlari.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Assignments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentDetail'
+          description: ''
+  /api/v1/assignments/{id}/submit/:
+    post:
+      operationId: v1_assignments_submit_create
+      description: |-
+        Vazifani topshirish (Figma 5-ekran 'Vazifani topshirish' tugmasi).
+        O'quvchi topshiriq natijasini rasm (skrinshot), fayl, GitHub havola yoki kod sifatida yuklaydi.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Assignments
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubmitAssignmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubmitAssignmentRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitAssignmentRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Vazifa muvaffaqiyatli topshirildi
+  /api/v1/assignments/daily-featured/:
+    get:
+      operationId: v1_assignments_daily_featured_retrieve
+      description: |-
+        Dashboarddagi bugungi asosiy vazifa banneri (Figma 3-ekran).
+        'Bugungi vazifa: Portfolio loyihasini yakunlash'
+        'Haftalik amaliy topshiriq topshirish vaqti tugashiga 1 kun qoldi.'
+      tags:
+      - Assignments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Bugungi bosh vazifa banneri
+  /api/v1/assignments/my-submissions/:
+    get:
+      operationId: v1_assignments_my_submissions_list
+      description: O'quvchining barcha topshirgan uy ishlari ro'yxati (Figma Topshiriqlar
+        bo'limi).
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAssignmentSubmissionList'
+          description: ''
+  /api/v1/auth/login/:
+    post:
+      operationId: v1_auth_login_create
+      description: |-
+        Tizimga kirish (Figma 1-ekran).
+        Foydalanuvchi administratsiya bergan email va parol bilan tizimga kiradi.
+        Muvaffaqiyatli kirganda JWT access va refresh tokenlar hamda foydalanuvchi ma'lumotlari qaytariladi.
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: Muvaffaqiyatli kirish
+        '400':
+          description: Noto'g'ri login/parol
+  /api/v1/auth/refresh/:
+    post:
+      operationId: v1_auth_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/communication/announcements/:
+    get:
+      operationId: v1_communication_announcements_list
+      description: E'lonlar va muloqot markazi xabarlari (Figma Muloqot markazi).
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAnnouncementList'
+          description: ''
+  /api/v1/communication/notifications/:
+    get:
+      operationId: v1_communication_notifications_list
+      description: Foydalanuvchining shaxsiy bildirishnomalari (Figma tepa o'ngdagi
+        qo'ng'iroqcha belgisi).
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /api/v1/communication/notifications/{id}/read/:
+    post:
+      operationId: v1_communication_notifications_read_create
+      description: Bildirishnomani o'qilgan deb belgilash.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Communication
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: O'qilgan deb belgilandi
+  /api/v1/communication/notifications/read-all/:
+    post:
+      operationId: v1_communication_notifications_read_all_create
+      description: Barcha bildirishnomalarni o'qilgan deb belgilash.
+      tags:
+      - Communication
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Barchasi o'qildi
+  /api/v1/courses/:
+    get:
+      operationId: v1_courses_list
+      description: |-
+        Ruxsat etilgan dasturlar va kurslar ro'yxati (Figma 2-ekran).
+        Foydalanuvchiga qaysi kurslar OCHIQ va qaysilari YOPIQ (Navbat kutilmoqda) ekanligini qaytaradi.
+        Tizim cheklovi: Maksimum 1-2 ta kurs ochiq bo'lishi mumkin.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCourseListList'
+          description: ''
+  /api/v1/courses/{slug}/modules/:
+    get:
+      operationId: v1_courses_modules_list
+      description: |-
+        Tanlangan kursning modullari ro'yxati (Figma 3-ekran).
+        Masalan: HTML Asoslari, CSS Visual Dizayn, JavaScript Dasturlash.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: 'Kursning slugi (masalan: frontend-dasturlash)'
+        required: true
+      tags:
+      - Modules & Topics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+          description: ''
+  /api/v1/groups/:
+    get:
+      operationId: v1_groups_list
+      description: O'quv guruhlari ro'yxati.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGroupList'
+          description: ''
+  /api/v1/modules/{module_id}/topics/:
+    get:
+      operationId: v1_modules_topics_list
+      description: |-
+        Tanlangan modulning mavzular ro'yxati (Figma 4-ekran).
+        Mavzular bo'yicha qidiruv (search) imkoniyati mavjud.
+      parameters:
+      - in: path
+        name: module_id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTopicListList'
+          description: ''
+  /api/v1/parent/child-dashboard/{student_id}/:
+    get:
+      operationId: v1_parent_child_dashboard_retrieve
+      description: |-
+        Ota-onalar uchun farzandini to'liq nazorat qilish paneli (monitoring).
+        - Guruhdagi o'rni (reyting)
+        - Davomat va kelmagan kunlari
+        - Qolib ketgan darslar va prezentatsiyalar (.pdf)
+        - Uy vazifalari (baho, taqriz, topshirilmaganlar)
+        - Test natijalari
+      parameters:
+      - in: path
+        name: student_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Parent Monitoring
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Farzand monitoring ma'lumotlari
+  /api/v1/parent/my-children/:
+    get:
+      operationId: v1_parent_my_children_retrieve
+      description: Ota-onaga biriktirilgan farzandlar ro'yxati.
+      tags:
+      - Parent Monitoring
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Farzandlar ro'yxati
+  /api/v1/profile/change-password/:
+    post:
+      operationId: v1_profile_change_password_create
+      description: Parolni o'zgartirish.
+      tags:
+      - Profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/profile/me/:
+    get:
+      operationId: v1_profile_me_retrieve
+      description: Foydalanuvchi profil ma'lumotlarini olish va tahrirlash (Figma
+        Mening profilim).
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: v1_profile_me_update
+      description: Foydalanuvchi profil ma'lumotlarini olish va tahrirlash (Figma
+        Mening profilim).
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: v1_profile_me_partial_update
+      description: Foydalanuvchi profil ma'lumotlarini olish va tahrirlash (Figma
+        Mening profilim).
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/quizzes/{id}/:
+    get:
+      operationId: v1_quizzes_retrieve
+      description: Bitta test ma'lumotlari va savollari.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Quizzes
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizDetail'
+          description: ''
+  /api/v1/quizzes/{id}/submit/:
+    post:
+      operationId: v1_quizzes_submit_create
+      description: |-
+        Mini-test javoblarini topshirish va darhol natijani hisoblash.
+        To'g'ri/noto'g'ri javoblarni ko'rsatadi, ball beradi va o'quvchi profiliga qo'shadi.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Quizzes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizSubmitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/QuizSubmitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/QuizSubmitRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Test natijasi muvaffaqiyatli hisoblandi
+  /api/v1/submissions/{id}/grade/:
+    post:
+      operationId: v1_submissions_grade_create
+      description: O'qituvchi yoki admin tomonidan o'quvchining vazifasini baholash
+        va izoh qoldirish.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Assignments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeSubmissionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GradeSubmissionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GradeSubmissionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Vazifa baholandi
+  /api/v1/topics/{id}/:
+    get:
+      operationId: v1_topics_retrieve
+      description: |-
+        Mavzu tafsilotlari (Figma 5-ekran).
+        Dars Prezentatsiyasi (PDF yuklab olish, slaydlar), dars kodi, mini-testlar va amaliy topshiriq ma'lumotlari.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Modules & Topics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopicDetail'
+          description: ''
+  /api/v1/topics/{id}/progress/:
+    post:
+      operationId: v1_topics_progress_create
+      description: |-
+        O'quvchining mavzuni o'zlashtirish progressini yangilash.
+        Slayd ko'rilganda yoki PDF yuklab olinganda chaqiriladi.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Modules & Topics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTopicProgressRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UpdateTopicProgressRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpdateTopicProgressRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Progress yangilandi
+  /api/v1/topics/{topic_id}/assignment/:
+    get:
+      operationId: v1_topics_assignment_retrieve
+      description: |-
+        Mavzuga biriktirilgan amaliy topshiriq (Figma 5-ekran o'ng tomon).
+        [100 BALL] [Muddat: 1 kun qoldi]
+      parameters:
+      - in: path
+        name: topic_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Assignments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentDetail'
+          description: ''
+  /api/v1/topics/{topic_id}/quizzes/:
+    get:
+      operationId: v1_topics_quizzes_list
+      description: |-
+        Mavzuga tegishli mini-testlar ro'yxati (Figma 5-ekran).
+        O'quvchining oldingi topshirgan javoblari (TO'G'RI / Qayta yechish) bilan birga qaytaradi.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: topic_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedQuizDetailList'
+          description: ''
+components:
+  schemas:
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: E'lon sarlavhasi
+          maxLength: 255
+        content:
+          type: string
+          title: E'lon matni
+        group:
+          type: integer
+          nullable: true
+          title: Qaysi guruhga (bo'sh bo'lsa hammaga)
+        group_name:
+          type: string
+          title: 'Guruh nomi (masalan: F-2401)'
+          readOnly: true
+        author_name:
+          type: string
+          readOnly: true
+        is_pinned:
+          type: boolean
+          title: Yuqoriga qadab qo'yish
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Chop etilgan vaqti
+      required:
+      - author_name
+      - content
+      - created_at
+      - group_name
+      - id
+      - title
+    AnswerOption:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Tartibi
+        text:
+          type: string
+          title: 'Variant matni (masalan: A) UTF-8)'
+          maxLength: 300
+      required:
+      - id
+      - text
+    AssignmentDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        topic:
+          type: integer
+          title: Mavzu
+        topic_title:
+          type: string
+          title: 'Mavzu nomi (masalan: Metateglar va Semantika)'
+          readOnly: true
+        module_title:
+          type: string
+          title: 'Modul nomi (masalan: HTML Asoslari)'
+          readOnly: true
+        course_title:
+          type: string
+          title: Kurs nomi
+          readOnly: true
+        title:
+          type: string
+          title: 'Topshiriq nomi (masalan: Loyiha uchun asosiy metadasturlarni sozlash)'
+          maxLength: 255
+        description:
+          type: string
+          title: Topshiriq sharti va talablari
+        max_score:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: 'Maksimal ball (masalan: 100 BALL)'
+        deadline_text:
+          type: string
+          title: 'Muddat matni (masalan: Muddat: 1 kun qoldi)'
+          maxLength: 100
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+          title: Topshirishning so'nggi muddati
+        is_daily_featured:
+          type: boolean
+          title: Bugungi bosh vazifa (Dashboard bannerida ko'rinadi)
+        banner_subtitle:
+          type: string
+          title: Dashboard banner taglavhasi
+          maxLength: 255
+        attachment:
+          type: string
+          format: uri
+          nullable: true
+          title: Biriktirilgan manba fayli / shablon
+        my_submission:
+          type: string
+          readOnly: true
+      required:
+      - course_title
+      - description
+      - id
+      - module_title
+      - my_submission
+      - title
+      - topic
+      - topic_title
+    AssignmentSubmission:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        assignment:
+          type: integer
+          title: Topshiriq
+        student:
+          type: integer
+          readOnly: true
+          title: O'quvchi
+        student_name:
+          type: string
+          readOnly: true
+        screenshot:
+          type: string
+          format: uri
+          nullable: true
+          title: Amaliy ish skrinshoti / rasmi (Natija isboti)
+        submission_file:
+          type: string
+          format: uri
+          nullable: true
+          title: Topshirilgan fayl (.zip, .html, .py)
+        github_url:
+          nullable: true
+          title: GitHub havola
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        code_text:
+          type: string
+          title: Topshirilgan kod yoki matn
+        student_comment:
+          type: string
+          title: O'quvchi izohi
+        status:
+          allOf:
+          - $ref: '#/components/schemas/AssignmentSubmissionStatusEnum'
+          readOnly: true
+          title: Holati
+        status_label:
+          type: string
+          readOnly: true
+        score:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: Qo'yilgan ball
+        teacher_feedback:
+          type: string
+          readOnly: true
+          title: O'qituvchi taqrizi va maslahati
+        graded_by_name:
+          type: string
+          readOnly: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Topshirilgan sana
+        graded_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: Baholangan sana
+      required:
+      - assignment
+      - graded_at
+      - graded_by_name
+      - id
+      - score
+      - status
+      - status_label
+      - student
+      - student_name
+      - submitted_at
+      - teacher_feedback
+    AssignmentSubmissionStatusEnum:
+      enum:
+      - PENDING
+      - APPROVED
+      - REJECTED
+      type: string
+      description: |-
+        * `PENDING` - Kutilmoqda (Tekshirilmagan)
+        * `APPROVED` - Qabul qilindi va baholandi
+        * `REJECTED` - Qayta topshirishga qaytarildi
+    Attendance:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        date:
+          type: string
+          format: date
+          title: Sana
+        student:
+          type: integer
+          title: O'quvchi
+        student_name:
+          type: string
+          readOnly: true
+        group:
+          type: integer
+          title: Guruh
+        group_name:
+          type: string
+          title: 'Guruh nomi (masalan: F-2401)'
+          readOnly: true
+        topic:
+          type: integer
+          nullable: true
+          title: O'tilgan dars/mavzu
+        topic_title:
+          type: string
+          title: 'Mavzu nomi (masalan: Metateglar va Semantika)'
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/AttendanceStatusEnum'
+          title: Davomat holati
+        status_label:
+          type: string
+          readOnly: true
+        teacher_note:
+          type: string
+          title: O'qituvchi izohi
+          maxLength: 255
+      required:
+      - date
+      - group
+      - group_name
+      - id
+      - status_label
+      - student
+      - student_name
+      - topic_title
+    AttendanceStatusEnum:
+      enum:
+      - PRESENT
+      - ABSENT
+      - EXCUSED
+      - LATE
+      type: string
+      description: |-
+        * `PRESENT` - Qatnashdi (Kelgan)
+        * `ABSENT` - Qatnashmadi (Kelmagan)
+        * `EXCUSED` - Sababli
+        * `LATE` - Kechikdi
+    ChangePasswordRequest:
+      type: object
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 6
+      required:
+      - new_password
+      - old_password
+    CourseList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: Kurs nomi
+          maxLength: 200
+        slug:
+          type: string
+          maxLength: 220
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          title: Kurs tavsifi
+        icon:
+          type: string
+          title: 'Icon nomi (masalan: code, database, mobile)'
+          maxLength: 50
+        technologies:
+          title: 'O''rgatiladigan texnologiyalar (masalan: [''HTML'', ''CSS'', ''JavaScript'',
+            ''React''])'
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Tartib raqami
+        enrollment_status:
+          type: string
+          readOnly: true
+        is_accessible:
+          type: string
+          readOnly: true
+        status_label:
+          type: string
+          readOnly: true
+        progress_percentage:
+          type: string
+          readOnly: true
+      required:
+      - description
+      - enrollment_status
+      - id
+      - is_accessible
+      - progress_percentage
+      - slug
+      - status_label
+      - title
+    GradeSubmissionRequest:
+      type: object
+      properties:
+        score:
+          type: integer
+          minimum: 0
+        teacher_feedback:
+          type: string
+        status:
+          allOf:
+          - $ref: '#/components/schemas/GradeSubmissionStatusEnum'
+          default: APPROVED
+      required:
+      - score
+    GradeSubmissionStatusEnum:
+      enum:
+      - APPROVED
+      - REJECTED
+      type: string
+      description: |-
+        * `APPROVED` - APPROVED
+        * `REJECTED` - REJECTED
+    Group:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: 'Guruh nomi (masalan: F-2401)'
+          maxLength: 50
+        description:
+          type: string
+          title: Guruh haqida tavsif
+        teacher:
+          type: integer
+          nullable: true
+          title: Mentor / O'qituvchi
+        teacher_name:
+          type: string
+          readOnly: true
+        telegram_group_url:
+          nullable: true
+          title: Telegram guruhi havolasi
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+      required:
+      - id
+      - name
+      - teacher_name
+    GroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: 'Guruh nomi (masalan: F-2401)'
+          maxLength: 50
+        description:
+          type: string
+          title: Guruh haqida tavsif
+        teacher:
+          type: integer
+          nullable: true
+          title: Mentor / O'qituvchi
+        telegram_group_url:
+          nullable: true
+          title: Telegram guruhi havolasi
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+      required:
+      - name
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - password
+    Module:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: 'Modul nomi (masalan: HTML Asoslari)'
+          maxLength: 200
+        description:
+          type: string
+          title: Modul tavsifi
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Tartibi
+        lessons_count_display:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Darslar soni (ko'rinishi)
+        topics_count_display:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Mavzular soni (ko'rinishi)
+        status:
+          type: string
+          readOnly: true
+        progress_percentage:
+          type: string
+          readOnly: true
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopicList'
+          readOnly: true
+      required:
+      - id
+      - progress_percentage
+      - status
+      - title
+      - topics
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: Sarlavha
+          maxLength: 255
+        message:
+          type: string
+          title: Xabar matni
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          title: Turi
+        link:
+          type: string
+          title: Yo'naltiruvchi havola
+          maxLength: 255
+        is_read:
+          type: boolean
+          title: O'qilganmi
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Yuborilgan vaqti
+      required:
+      - created_at
+      - id
+      - message
+      - title
+    NotificationTypeEnum:
+      enum:
+      - ASSIGNMENT
+      - QUIZ
+      - ATTENDANCE
+      - RANKING
+      - SYSTEM
+      type: string
+      description: |-
+        * `ASSIGNMENT` - Vazifa xabarnomasi
+        * `QUIZ` - Test xabarnomasi
+        * `ATTENDANCE` - Davomat xabarnomasi
+        * `RANKING` - Reyting oʻzgarishi
+        * `SYSTEM` - Tizim xabari
+    PaginatedAnnouncementList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Announcement'
+    PaginatedAssignmentSubmissionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssignmentSubmission'
+    PaginatedAttendanceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attendance'
+    PaginatedCourseListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseList'
+    PaginatedGroupList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Group'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+    PaginatedQuizDetailList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuizDetail'
+    PaginatedTopicListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopicList'
+    PatchedUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: E-mail
+          maxLength: 254
+        first_name:
+          type: string
+          minLength: 1
+          title: Ism
+          maxLength: 150
+        last_name:
+          type: string
+          minLength: 1
+          title: Familiya
+          maxLength: 150
+        phone_number:
+          type: string
+          nullable: true
+          title: Telefon raqam
+          maxLength: 20
+        avatar:
+          type: string
+          format: binary
+          nullable: true
+          title: Profil rasmi
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: 'Savol tartibi (#1, #2...)'
+        text:
+          type: string
+          title: Savol matni
+          maxLength: 500
+        points:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Beriladigan ball
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerOption'
+          readOnly: true
+        user_status:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - options
+      - text
+      - user_status
+    QuizDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        topic:
+          type: integer
+          title: Mavzu
+        title:
+          type: string
+          title: Mini-test sarlavhasi
+          maxLength: 200
+        description:
+          type: string
+          title: Qisqa izoh
+        pass_percentage:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: O'tish foizi (%)
+        questions_count:
+          type: integer
+          readOnly: true
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+          readOnly: true
+        last_attempt:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - last_attempt
+      - questions
+      - questions_count
+      - title
+      - topic
+    QuizSubmitRequest:
+      type: object
+      properties:
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubmitAnswerItemRequest'
+      required:
+      - answers
+    RoleEnum:
+      enum:
+      - ADMIN
+      - TEACHER
+      - STUDENT
+      - PARENT
+      type: string
+      description: |-
+        * `ADMIN` - Administrator
+        * `TEACHER` - O'qituvchi / Mentor
+        * `STUDENT` - O'quvchi / Bilimdon
+        * `PARENT` - Ota-ona
+    StudentProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        group:
+          allOf:
+          - $ref: '#/components/schemas/Group'
+          readOnly: true
+        parent:
+          type: integer
+          nullable: true
+          title: Biriktirilgan Ota-ona
+        parent_name:
+          type: string
+          readOnly: true
+        total_points:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Umumiy to'plangan ballar
+        completed_tasks_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Muvaffaqiyatli topshirilgan vazifalar
+        passed_quizzes_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Yechilgan testlar soni
+        attendance_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: Davomat ko'rsatkichi (%)
+        bio:
+          type: string
+          title: O'quvchi haqida qisqacha
+      required:
+      - group
+      - id
+      - parent_name
+    StudentProfileRequest:
+      type: object
+      properties:
+        group_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        parent:
+          type: integer
+          nullable: true
+          title: Biriktirilgan Ota-ona
+        total_points:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Umumiy to'plangan ballar
+        completed_tasks_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Muvaffaqiyatli topshirilgan vazifalar
+        passed_quizzes_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Yechilgan testlar soni
+        attendance_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: Davomat ko'rsatkichi (%)
+        bio:
+          type: string
+          title: O'quvchi haqida qisqacha
+    SubmitAnswerItemRequest:
+      type: object
+      properties:
+        question_id:
+          type: integer
+        selected_option_id:
+          type: integer
+      required:
+      - question_id
+      - selected_option_id
+    SubmitAssignmentRequest:
+      type: object
+      properties:
+        screenshot:
+          type: string
+          format: binary
+          nullable: true
+          title: Amaliy ish skrinshoti / rasmi (Natija isboti)
+        submission_file:
+          type: string
+          format: binary
+          nullable: true
+          title: Topshirilgan fayl (.zip, .html, .py)
+        github_url:
+          nullable: true
+          title: GitHub havola
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        code_text:
+          type: string
+          title: Topshirilgan kod yoki matn
+        student_comment:
+          type: string
+          title: O'quvchi izohi
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    TopicDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Mavzu tartib raqami
+        title:
+          type: string
+          title: 'Mavzu nomi (masalan: Metateglar va Semantika)'
+          maxLength: 200
+        module_title:
+          type: string
+          title: 'Modul nomi (masalan: HTML Asoslari)'
+          readOnly: true
+        course_title:
+          type: string
+          title: Kurs nomi
+          readOnly: true
+        lessons_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Darslar soni
+        duration_hours:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,1})?$
+          title: Davomiyligi (soat)
+        description:
+          type: string
+          title: Mavzu matni / konspekt
+        presentation_title:
+          type: string
+          title: 'Dars Prezentatsiyasi sarlavhasi (masalan: Metateglar va SEO asoslari)'
+          maxLength: 255
+        presentation_file_url:
+          type: string
+          readOnly: true
+        slides_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Jami slaydlar soni
+        source_code_url:
+          nullable: true
+          title: Kod havolasi (GitHub)
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        source_code_snippet:
+          type: string
+          title: Namunaviy kod matni
+        video_url:
+          nullable: true
+          title: Video tushuntirish havolasi
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        user_progress:
+          type: string
+          readOnly: true
+        quizzes_count:
+          type: string
+          readOnly: true
+        assignments_count:
+          type: string
+          readOnly: true
+      required:
+      - assignments_count
+      - course_title
+      - id
+      - module_title
+      - presentation_file_url
+      - quizzes_count
+      - title
+      - user_progress
+    TopicList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Mavzu tartib raqami
+        title:
+          type: string
+          title: 'Mavzu nomi (masalan: Metateglar va Semantika)'
+          maxLength: 200
+        lessons_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Darslar soni
+        duration_hours:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,1})?$
+          title: Davomiyligi (soat)
+        status:
+          type: string
+          readOnly: true
+        progress_percentage:
+          type: string
+          readOnly: true
+        has_presentation:
+          type: string
+          readOnly: true
+      required:
+      - has_presentation
+      - id
+      - progress_percentage
+      - status
+      - title
+    UpdateTopicProgressRequest:
+      type: object
+      properties:
+        slides_viewed:
+          type: integer
+          minimum: 0
+        is_presentation_downloaded:
+          type: boolean
+        progress_percentage:
+          type: integer
+          maximum: 100
+          minimum: 0
+        status:
+          $ref: '#/components/schemas/UpdateTopicProgressStatusEnum'
+    UpdateTopicProgressStatusEnum:
+      enum:
+      - LOCKED
+      - NOT_STARTED
+      - IN_PROGRESS
+      - COMPLETED
+      type: string
+      description: |-
+        * `LOCKED` - Yopiq
+        * `NOT_STARTED` - Boshlanmagan
+        * `IN_PROGRESS` - O'rganilmoqda
+        * `COMPLETED` - Tugallangan
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: E-mail
+          maxLength: 254
+        first_name:
+          type: string
+          title: Ism
+          maxLength: 150
+        last_name:
+          type: string
+          title: Familiya
+          maxLength: 150
+        full_name:
+          type: string
+          readOnly: true
+        phone_number:
+          type: string
+          nullable: true
+          title: Telefon raqam
+          maxLength: 20
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+          title: Rol
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+          title: Profil rasmi
+        student_profile:
+          allOf:
+          - $ref: '#/components/schemas/StudentProfile'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Yaratilgan vaqti
+      required:
+      - created_at
+      - email
+      - first_name
+      - full_name
+      - id
+      - last_name
+      - role
+      - student_profile
+    UserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: E-mail
+          maxLength: 254
+        first_name:
+          type: string
+          minLength: 1
+          title: Ism
+          maxLength: 150
+        last_name:
+          type: string
+          minLength: 1
+          title: Familiya
+          maxLength: 150
+        phone_number:
+          type: string
+          nullable: true
+          title: Telefon raqam
+          maxLength: 20
+        avatar:
+          type: string
+          format: binary
+          nullable: true
+          title: Profil rasmi
+      required:
+      - email
+      - first_name
+      - last_name
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+- name: Auth
+  description: Tizimga kirish (Login) va Token yangilash
+- name: Profile
+  description: Foydalanuvchi profili maʼlumotlari
+- name: Courses
+  description: Kurslar va foydalanuvchiga ruxsat etilgan dasturlar
+- name: Modules & Topics
+  description: Modullar, mavzular, taqdimotlar va oʻzlashtirish
+- name: Quizzes
+  description: Mavzu boʻyicha mini-testlar va natijalar
+- name: Assignments
+  description: Amaliy topshiriqlar va uy vazifalarini topshirish (rasm, kod, fayl)
+- name: Leaderboard & Analytics
+  description: Guruh reytingi va oʻquvchi koʻrsatkichlari
+- name: Parent Monitoring
+  description: Ota-onalar uchun farzandini nazorat qilish paneli
+- name: Communication
+  description: Eʼlonlar va shaxsiy bildirishnomalar

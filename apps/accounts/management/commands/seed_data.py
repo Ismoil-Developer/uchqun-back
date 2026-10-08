@@ -348,9 +348,9 @@ class Command(BaseCommand):
 
             # 11. Amaliy Topshiriq (Figma 5-ekran)
             assignment, _ = Assignment.objects.get_or_create(
+                title="Loyiha uchun asosiy metadasturlarni sozlash",
                 topic=topic_meta,
                 defaults={
-                    'title': "Loyiha uchun asosiy metadasturlarni sozlash",
                     'description': "Index.html faylini yarating va unga SEO uchun muhim bo'lgan description, keywords hamda Open Graph metataglarni qo'shing.",
                     'max_score': 100,
                     'deadline_text': "Muddat: 1 kun qoldi",
